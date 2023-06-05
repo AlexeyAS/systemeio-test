@@ -55,16 +55,4 @@ class SaleRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-    /**
-     * @throws NonUniqueResultException
-     */
-    public function checkSale($value): ?Sale
-    {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.code = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
 }

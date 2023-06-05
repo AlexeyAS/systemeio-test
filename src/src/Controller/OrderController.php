@@ -8,6 +8,7 @@ use App\Form\OrderType;
 use App\Repository\ProductRepository;
 use App\Repository\SaleRepository;
 use App\Repository\TaxRepository;
+use App\Service\Transformer;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\ResultSetMapping;
@@ -37,29 +38,35 @@ class OrderController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $order = new Order();
-//        $rsm = new ResultSetMapping();
-//        $products = $entityManager->createNativeQuery('select * from product ORDER BY id DESC LIMIT 10', $rsm)->getResult();;
+        $transformer = new Transformer($entityManager);
 
-        /** @var ProductRepository $productRepository */
-        $productRepository = $this->doctrine->getRepository(Product::class);
-        $options['products'] = $productRepository->getAllProducts();
+        if ($request->get('price')) {
+            $order->setPrice($request->get('price'));
+        }
 
-        dump($options);
+        $order->setCountryCode($request->get('country_code') ?? null);
+        $order->setSaleCode($request->get('sale_code') ?? '');
+        $order->setPaymentProcessor($request->get('payment_processor') ?? null);
+        $productId = $request->get('order')['product'] ?? null;
+        if ((int) $productId) {
+            $order->setProduct((int) $productId);
+        }
 
+        $options['products'] = $transformer->getAllProducts();
         $form = $this->createForm(OrderType::class, $order, $options);
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var Product $product */
-            $product = $form->get('product')->getData();
+            $productId = $form->get('product')->getData();
+            dump($productId);
+            $product = $transformer->findByIdProduct($productId);
             $price = $product->getPrice();
-            /** @var SaleRepository $saleRepository */
-            $sale = $saleRepository->checkSale($form->get('sale_code')->getData());
+            $sale = $transformer->checkSale($form->get('sale_code')->getData());
             if ($sale) {
                 $price = $this->calculateSale($price, $sale);
             }
-            /** @var TaxRepository $taxRepository */
-            $tax = $taxRepository->getTax($form->get('country_code')->getData());
+            $tax = $transformer->getTax($form->get('country_code')->getData());
             if ($tax) {
                 $price = $this->calculateTax($price, $tax);
             }

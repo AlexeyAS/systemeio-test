@@ -23,21 +23,28 @@ class Product
     private ?string $price = null;
 
     #[ORM\OneToMany(mappedBy: 'orders', targetEntity: Product::class)]
-    private ArrayCollection $orders;
+    private ?Collection $orders;
 
-    public function __construct()
-    {
-        $this->orders = new ArrayCollection();
-    }
+//    public function __construct()
+//    {
+//        $this->orders = new Order();
+//    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getOrders(): ArrayCollection
+    public function getOrders(): Collection
     {
         return $this->orders;
+    }
+
+    public function setOrders(?Collection $orders): self
+    {
+        $this->orders = $orders;
+
+        return $this;
     }
 
     public function getName(): ?string

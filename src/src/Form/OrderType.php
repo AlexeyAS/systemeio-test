@@ -14,10 +14,13 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Collection;
 
@@ -37,7 +40,7 @@ class OrderType extends AbstractType
                     }
                     $arr = [];
                     foreach ($products as $product){
-                        $arr[$product['name']] = $product['price'];
+                        $arr[$product['name']] = $product['id'];
                     }
                     return $arr;
                 }),
@@ -88,9 +91,12 @@ class OrderType extends AbstractType
                 ],
                 'label_attr' => [ 'class' => 'form-label form-label-sm']
             ])
-
-
-            ->add('price')
+            ->add('price', NumberType::class, [
+                'label' => 'Price, €;',
+                'attr' => [
+                    'class' => 'form-control form-control-sm wight-input-short'
+                ]
+            ])
 //            ->add('product_id')
 //            ->add('product_name')
             ->add('submit', SubmitType::class, [
@@ -99,6 +105,10 @@ class OrderType extends AbstractType
                     'class' => 'btn btn-sm mt-4 '
                 ]
             ]);
+
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options){});
+
+        $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) use ($options){});
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -39,18 +39,6 @@ class ProductRepository extends ServiceEntityRepository
         }
     }
 
-    /**
-     * @return Product[] Returns an array of Product objects
-     */
-    public function getAllProducts(): array
-    {
-        $qb = $this->getEntityManager()->createQueryBuilder();
-        $query = $qb
-            ->select('p.id, p.name, p.price')
-            ->from(Product::class, 'p')
-            ->getQuery();
-        return $query->getResult();
-    }
 //    /**
 //     * @return Product[] Returns an array of Product objects
 //     */
@@ -61,16 +49,6 @@ class ProductRepository extends ServiceEntityRepository
 //            ->setParameter('val', $value)
 //            ->orderBy('p.id', 'ASC')
 //            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField(): ?Product
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.id = :val')
-//            ->setParameter('val', 1)
 //            ->getQuery()
 //            ->getResult()
 //        ;

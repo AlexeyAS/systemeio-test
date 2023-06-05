@@ -17,7 +17,7 @@ class Order
 
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'orders')]
     #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id',nullable: true, onDelete: null)]
-    private product $product;
+    private ?int $product;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $tax_number = null;
@@ -31,7 +31,7 @@ class Order
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $sale_code = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $price = null;
 
     #[ORM\Column(nullable: true)]
@@ -42,12 +42,12 @@ class Order
         return $this->id;
     }
 
-    public function getProduct(): ?Product
+    public function getProduct(): ?int
     {
         return $this->product;
     }
 
-    public function setProductId(?Product $product): self
+    public function setProduct(int $product): self
     {
         $this->product = $product;
 

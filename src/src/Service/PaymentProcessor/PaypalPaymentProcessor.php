@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Enum\PaymentProcessor;
+namespace App\Service\PaymentProcessor;
+use App\Service\PaymentProcessor\Exception;
+
 class PaypalPaymentProcessor
 {
     /**

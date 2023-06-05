@@ -54,17 +54,4 @@ class TaxRepository extends ServiceEntityRepository
 //            ->getResult()
 //        ;
 //    }
-
-    /**
-     * @throws NonUniqueResultException
-     */
-    public function getTax($value): int|float
-    {
-        $tax = $this->createQueryBuilder('t')
-            ->andWhere('t.country_code = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult();
-        return $tax ? $tax['percent'] : 0;
-    }
 }

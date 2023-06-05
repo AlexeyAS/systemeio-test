@@ -15,6 +15,6 @@ trait CalculateTrait
     }
     public function calculateTax($price, $tax): float|int
     {
-        return $price/$tax;
+        return $price - $price*$tax;
     }
 }
