@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Tax;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -54,13 +55,16 @@ class TaxRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-//    public function findOneBySomeField($value): ?Tax
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /**
+     * @throws NonUniqueResultException
+     */
+    public function getTax($value): int|float
+    {
+        $tax = $this->createQueryBuilder('t')
+            ->andWhere('t.country_code = :val')
+            ->setParameter('val', $value)
+            ->getQuery()
+            ->getOneOrNullResult();
+        return $tax ? $tax['percent'] : 0;
+    }
 }

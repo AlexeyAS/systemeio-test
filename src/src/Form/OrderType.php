@@ -10,9 +10,11 @@ use App\Repository\ProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -24,10 +26,6 @@ class OrderType extends AbstractType
 //    public function __construct(private readonly ManagerRegistry $doctrine) {}
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-//        /** @var ProductRepository $repository */
-//        $repository = $this->doctrine->getRepository(Product::class);
-//        $options['product'] = $repository->getAllProducts();
-
         $builder
             ->add('product', ChoiceType::class, [
                 'label' => 'Товар',
@@ -95,7 +93,12 @@ class OrderType extends AbstractType
             ->add('price')
 //            ->add('product_id')
 //            ->add('product_name')
-        ;
+            ->add('submit', SubmitType::class, [
+                'label' => 'Рассчитать',
+                'attr' => [
+                    'class' => 'btn btn-sm mt-4 '
+                ]
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
