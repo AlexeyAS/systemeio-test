@@ -5,4 +5,4 @@ controllers:
     type: attribute
 index:
     path: /
-    controller: App\Controller\ProductController::index
+    controller: App\Controller\OrderController::index

@@ -1,5 +1,6 @@
 <?php
 
+namespace App\Enum\PaymentProcessor;
 class StripePaymentProcessor
 {
     /**

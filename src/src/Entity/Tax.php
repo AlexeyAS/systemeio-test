@@ -14,8 +14,8 @@ class Tax
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $tax_number = null;
+    #[ORM\Column(length: 2)]
+    private ?string $country_code = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2, nullable: true)]
     private ?string $percent = null;
@@ -25,14 +25,14 @@ class Tax
         return $this->id;
     }
 
-    public function getTaxNumber(): ?string
+    public function getCountryCode(): ?string
     {
-        return $this->tax_number;
+        return $this->country_code;
     }
 
-    public function setTaxNumber(string $tax_number): self
+    public function setCountryCode(string $country_code): self
     {
-        $this->tax_number = $tax_number;
+        $this->country_code = $country_code;
 
         return $this;
     }
