@@ -99,8 +99,14 @@ class OrderType extends AbstractType
             ])
 //            ->add('product_id')
 //            ->add('product_name')
-            ->add('submit', SubmitType::class, [
-                'label' => 'Рассчитать',
+            ->add('calculate', SubmitType::class, [
+                'label' => 'Calculate',
+                'attr' => [
+                    'class' => 'btn btn-sm mt-4 '
+                ]
+            ])
+            ->add('payment', SubmitType::class, [
+                'label' => 'Payment',
                 'attr' => [
                     'class' => 'btn btn-sm mt-4 '
                 ]

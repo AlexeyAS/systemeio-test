@@ -30,6 +30,9 @@ final class Version20230605000830 extends AbstractMigration
         $this->addSql('INSERT INTO tax (id, country_code, percent) VALUES (2,'. "'IT'" . ', 22.00)');
         $this->addSql('INSERT INTO tax (id, country_code, percent) VALUES (3,'. "'GR'" . ', 24.00)');
         $this->addSql('ALTER sequence tax_id_seq start with 4');
+        $this->addSql('INSERT INTO sale (id, code, type, sale_price, sale_percent) VALUES (1,'. "'SALE4','sale',NULL" . ', 4.00)');
+        $this->addSql('INSERT INTO sale (id, code, type, sale_price, sale_percent) VALUES (2,'. "'GIFT10','gift'" . ', 10.00, NULL)');
+        $this->addSql('ALTER sequence sale_id_seq start with 3');
     }
 
     public function down(Schema $schema): void

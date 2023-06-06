@@ -3,18 +3,20 @@
 namespace App\Traits;
 
 
+use App\Entity\Sale;
+
 trait CalculateTrait
 {
-    public function calculateSale($price, $sale): float|int
+    public function calculateSale($price, Sale $sale): float|int
     {
-        if ($sale['sale_price']) {
-            return ($price - $sale['sale_price']);
+        if ($sale->getSalePrice()) {
+            return ($price - $sale->getSalePrice());
         } else {
-            return ($price - ($sale['sale_percent'] * $price));
+            return ($price - ($sale->getSalePercent() * 0.01 * $price));
         }
     }
     public function calculateTax($price, $tax): float|int
     {
-        return $price - $price*$tax;
+        return $price + $price*$tax;
     }
 }

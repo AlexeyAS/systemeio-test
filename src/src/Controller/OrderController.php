@@ -23,19 +23,13 @@ class OrderController extends AbstractController
 {
     use CalculateTrait;
     public function __construct(private readonly ManagerRegistry $doctrine) {}
-    #[Route('/', name: 'app_order')]
-    public function index(): Response
-    {
-        return $this->render('base.html.twig', [
-            'controller_name' => 'OrderController',
-        ]);
-    }
+
 
     /**
      * @throws NonUniqueResultException
      */
-    #[Route('/new', name: 'app_order_new')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/', name: 'app_order')]
+    public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
         $order = new Order();
         $transformer = new Transformer($entityManager);
@@ -54,12 +48,10 @@ class OrderController extends AbstractController
 
         $options['products'] = $transformer->getAllProducts();
         $form = $this->createForm(OrderType::class, $order, $options);
-
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $productId = $form->get('product')->getData();
-            dump($productId);
             $product = $transformer->findByIdProduct($productId);
             $price = $product->getPrice();
             $sale = $transformer->checkSale($form->get('sale_code')->getData());
@@ -70,17 +62,36 @@ class OrderController extends AbstractController
             if ($tax) {
                 $price = $this->calculateTax($price, $tax);
             }
-
+            dump($form->get('payment')->isClicked());
+            $action = ($form->get('payment')->isClicked())
+                ? 'app_order_payment'
+                : 'app_order_calculate';
+            dump($action);
+            if ($action === 'app_order_payment') {
+                //TODO SAVE ORDER
+                return $this->redirectToRoute('app_order_payment');
+            }
             return $this->render('order/index.html.twig', [
                 'form' => $form->createView(),
                 'products' => $options['products'],
                 'price' => $price
             ]);
         }
-
         return $this->render('order/index.html.twig', [
             'form' => $form->createView(),
-            'products' => $options['products'],
+            'products' => $options['products']
+        ]);
+    }
+
+    #[Route('/payment', name: 'app_order_payment')]
+    public function payment(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        //TODO payment paypal stripe
+        //TODO paymentController
+        dump('test32');
+        return $this->render('order/payment.html.twig', [
+            //fixme order
+//            'order' => $order
         ]);
     }
 }

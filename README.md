@@ -1,3 +1,7 @@
+# TODO Payout
+# Todo PaymentController
+# Todo Validator
+
 # Написать symfony REST приложение для рассчета цены продукта и проведения оплаты
 
 Необходимо написать 2 эндпоинта:

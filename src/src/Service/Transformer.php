@@ -17,43 +17,21 @@ class Transformer
         $this->em = $entityManager;
     }
 
-
     public function checkSale($value): ?Sale
     {
-        dump($value);
-        $sale = $this->em->getRepository(Sale::class);
-        dump($sale);
-        $find = $sale->findOneBy(['code'=>$value]);
-
-
-        dump($find);
-        return $find;
-    }
-
-
-    public function getTax($value): int|float
-    {
-        dump($value);
-        $product = $this->em->getRepository(Tax::class);
-        dump($product);
-        $tax = $product->findOneBy(['country_code'=>$value]);
-
-
-        dump($tax);
-
-        return $tax ? ($tax->getPercent() * 0.01) : 0;
+        return $this->em->getRepository(Sale::class)->findOneBy(['code'=>$value]);
     }
 
     public function findByIdProduct($value): ?Product
     {
-        dump($value);
-        $product = $this->em->getRepository(Product::class);
-        dump($product);
-        $find = $product->findOneBy(['id'=>$value]);
+        return $this->em->getRepository(Product::class)->findOneBy(['id'=>$value]);
+    }
 
-
-        dump($find);
-        return $find;
+    public function getTax($value): int|float
+    {
+        $product = $this->em->getRepository(Tax::class);
+        $tax = $product->findOneBy(['country_code'=>$value]);
+        return $tax ? ($tax->getPercent() * 0.01) : 0;
     }
 
     /**
