@@ -3,13 +3,9 @@
 namespace App\Form;
 
 use App\Entity\Order;
-use App\Entity\Product;
 use App\Enum\CountryEnum;
 use App\Enum\PaymentEnum;
-use App\Repository\ProductRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Doctrine\ORM\EntityManagerInterface;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
@@ -19,14 +15,24 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Collection;
+use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Validator\Order as OrderConstraint;
 
 class OrderType extends AbstractType
 {
-//    public function __construct(private readonly ManagerRegistry $doctrine) {}
+    private EntityManagerInterface $em;
+    private ValidatorInterface $validator;
+    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator) {
+        $this->em = $entityManager;
+        $this->validator = $validator;
+    }
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -51,7 +57,7 @@ class OrderType extends AbstractType
             ])
             ->add('tax_number', TextType::class, [
                 'label' => 'Налоговый номер',
-                'required' => false,
+                'required' => true,
                 'attr' => [
                     'autocomplete' => 'off',
                     'class' => 'form-control form-control-sm'
@@ -97,8 +103,6 @@ class OrderType extends AbstractType
                     'class' => 'form-control form-control-sm wight-input-short'
                 ]
             ])
-//            ->add('product_id')
-//            ->add('product_name')
             ->add('calculate', SubmitType::class, [
                 'label' => 'Calculate',
                 'attr' => [
@@ -114,7 +118,25 @@ class OrderType extends AbstractType
 
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options){});
 
-        $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) use ($options){});
+        $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) use ($options){
+            $form = $event->getForm();
+            /** @var Order $data */
+            $data = $event->getData();
+            $orderConstraint = new OrderConstraint();
+            $errors = $this->validator->validate($data, $orderConstraint);
+
+            if (count($errors) > 0){
+                /** @var ConstraintViolation $error */
+                foreach ($errors as $error){
+                    $form->addError(new FormError($error->getMessage()));
+                    $event->getForm()->get('tax_number')->addError(new FormError($error->getMessage()));
+                }
+            }
+        });
+
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) use ($options) {
+
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void

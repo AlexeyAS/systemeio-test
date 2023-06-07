@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\OrderRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: '`order`')]
@@ -20,6 +21,8 @@ class Order
     private ?int $product;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\NotBlank(message: 'TAX NUMBER CANT BE EMPTY')]
+    #[Assert\Valid]
     private ?string $tax_number = null;
 
     #[ORM\Column(length: 255, nullable: true)]

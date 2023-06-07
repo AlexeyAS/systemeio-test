@@ -63,7 +63,6 @@ class Transformer
         $countryCode && $result['country_code'] = $countryCode;
         $saleCode && $result['sale_code'] = $saleCode;
         $paymentProcessor && $result['payment_processor'] = $paymentProcessor;
-        dump($result??'');
         return (http_build_query($result ?? []));
     }
 }

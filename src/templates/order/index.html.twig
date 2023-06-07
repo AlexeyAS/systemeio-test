@@ -46,7 +46,9 @@
         {{ form_widget(form.payment) }}
     </div>
 {#    {{ form(form) }}#}
-
+    <div class="text-danger small-text" style="color: red">
+        {{ form_errors(form.tax_number) }}
+    </div>
     <ul>
         <li>Your SALE <code>SALE4</code></li>
         <li>Your GIFT <code>GIFT10</code></li>
