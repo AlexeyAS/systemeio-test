@@ -4,8 +4,8 @@ namespace App\Form;
 
 use App\Entity\Order;
 use App\Entity\Product;
-use App\Enum\Country;
-use App\Enum\PaymentProcessor;
+use App\Enum\CountryEnum;
+use App\Enum\PaymentEnum;
 use App\Repository\ProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
@@ -61,10 +61,10 @@ class OrderType extends AbstractType
             ->add('country_code', ChoiceType::class, [
                 'label' => 'Страна',
                 'choices' => [
-                    'Германия' => Country::COUNTRY_CODE_GERMANY,
-                    'Греция' => Country::COUNTRY_CODE_GREECE,
-                    'Франция' => Country::COUNTRY_CODE_FRANCE,
-                    'Италия' => Country::COUNTRY_CODE_ITALY
+                    'Германия' => CountryEnum::COUNTRY_CODE_GERMANY,
+                    'Греция' => CountryEnum::COUNTRY_CODE_GREECE,
+                    'Франция' => CountryEnum::COUNTRY_CODE_FRANCE,
+                    'Италия' => CountryEnum::COUNTRY_CODE_ITALY
                 ],
                 'attr' => [
                     'class' => 'form-control form-control-sm wight-input-short'
@@ -83,8 +83,8 @@ class OrderType extends AbstractType
             ->add('payment_processor', ChoiceType::class, [
                 'label' => 'Способ оплаты',
                 'choices' => [
-                    'PayPal' => PaymentProcessor::PAYMENT_CODE_PAYPAL,
-                    'Stripe' => PaymentProcessor::PAYMENT_CODE_STRIPE,
+                    'PayPal' => PaymentEnum::PAYMENT_PROCESSOR_PAYPAL,
+                    'Stripe' => PaymentEnum::PAYMENT_PROCESSOR_STRIPE,
                 ],
                 'attr' => [
                     'class' => 'form-control form-control-sm wight-input-short'

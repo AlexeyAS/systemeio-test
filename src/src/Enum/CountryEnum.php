@@ -2,7 +2,7 @@
 
 namespace App\Enum;
 
-class Country extends BaseEnum
+class CountryEnum extends BaseEnum
 {
     const COUNTRY_CODE_GERMANY = 'DE';
     const COUNTRY_CODE_GREECE = 'GR';

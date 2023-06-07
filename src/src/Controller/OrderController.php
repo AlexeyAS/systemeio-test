@@ -3,12 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Order;
+use App\Enum\OrderEnum;
+use App\Enum\ControllerEnum;
 use App\Entity\Product;
+use App\Enum\PaymentEnum;
 use App\Form\OrderType;
 use App\Repository\ProductRepository;
 use App\Repository\SaleRepository;
 use App\Repository\TaxRepository;
 use App\Service\Transformer;
+use App\Traits\PaymentProcessorTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\ResultSetMapping;
@@ -18,80 +22,100 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Traits\CalculateTrait;
+use Exception;
 
 class OrderController extends AbstractController
 {
     use CalculateTrait;
+    use PaymentProcessorTrait;
     public function __construct(private readonly ManagerRegistry $doctrine) {}
-
 
     /**
      * @throws NonUniqueResultException
      */
-    #[Route('/', name: 'app_order')]
+    #[Route('/', name: ControllerEnum::ORDER_CONTROLLER, methods: ['GET','POST'])]
     public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
         $order = new Order();
         $transformer = new Transformer($entityManager);
-
-        if ($request->get('price')) {
-            $order->setPrice($request->get('price'));
-        }
-
-        $order->setCountryCode($request->get('country_code') ?? null);
-        $order->setSaleCode($request->get('sale_code') ?? '');
-        $order->setPaymentProcessor($request->get('payment_processor') ?? null);
-        $productId = $request->get('order')['product'] ?? null;
-        if ((int) $productId) {
-            $order->setProduct((int) $productId);
-        }
-
         $options['products'] = $transformer->getAllProducts();
+        $calcData = [];
+        $request->get('req') && parse_str($request->get('req'), $calcData);
+
+        $productId = $calcData['product_id'] ?? null;
+        $paymentProcessor = $calcData['payment_processor'] ?? null;
+        $saleId = $calcData['sale_id'] ?? null;
+        $saleCode = $calcData['sale_code'] ?? null;
+        $countryCode = $calcData['country_code'] ?? null;
+        $taxNumber = $calcData['tax_number'] ?? null;
+        $price = $calcData['price'] ?? $request->get('price') ?? null;
+        if ($calcData) {
+            $order->setProduct($productId);
+            $order->setPaymentProcessor($paymentProcessor);
+            $order->setCountryCode($countryCode);
+            $order->setSaleCode($saleCode);
+            $order->setTaxNumber($taxNumber);
+            $order->setPrice($price);
+        }
+
         $form = $this->createForm(OrderType::class, $order, $options);
         $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid() && method_exists($form, 'getClickedButton')) {
+            $paymentProcessor = $form->get('payment_processor')->getData() ?? null;
+            $countryCode = $form->get('country_code')->getData() ?? null;
+            $saleCode = $form->get('sale_code')->getData();
+            $taxNumber = $form->get('tax_number')->getData();
+            $price = $form->get('price')->getData() ?? null;
 
-        if ($form->isSubmitted() && $form->isValid()) {
+            $order->setSaleCode($request->get('sale_code') ?? '');
+            $order->setPaymentProcessor($paymentProcessor);
+
+            $action = $form->getClickedButton()->getName() ?: OrderEnum::ORDER_ACTION_CALCULATE;
             $productId = $form->get('product')->getData();
             $product = $transformer->findByIdProduct($productId);
-            $price = $product->getPrice();
-            $sale = $transformer->checkSale($form->get('sale_code')->getData());
-            if ($sale) {
-                $price = $this->calculateSale($price, $sale);
+            $sale = $transformer->getSale($saleCode);
+            $tax = $transformer->getTax($countryCode);
+            $price = $this->calculatePrice($product->getPrice(), $sale, $tax);
+
+            if ($action === OrderEnum::ORDER_ACTION_CALCULATE) {
+                return $this->redirectToRoute(ControllerEnum::ORDER_CONTROLLER, [
+                    'req' => $transformer->calcData(
+                        $productId,
+                        $sale ? ($sale->getId()) : null,
+                        $tax ? ($tax->getId()) : null,
+                        $price ?: null,
+                        $taxNumber ?: null,
+                        $countryCode ?: null,
+                        $saleCode ?: null,
+                        $paymentProcessor ?: null
+                    )
+                ]);
             }
-            $tax = $transformer->getTax($form->get('country_code')->getData());
-            if ($tax) {
-                $price = $this->calculateTax($price, $tax);
+            elseif($action === OrderEnum::ORDER_ACTION_PAYMENT && $request->isMethod('POST')) {
+                $paymentProcessor && ($obj = $this->getPaymentProcessorObject($paymentProcessor));
+                $paymentProcessor && ($method = $this->getPaymentProcessorMethod($paymentProcessor));
             }
-            dump($form->get('payment')->isClicked());
-            $action = ($form->get('payment')->isClicked())
-                ? 'app_order_payment'
-                : 'app_order_calculate';
-            dump($action);
-            if ($action === 'app_order_payment') {
-                //TODO SAVE ORDER
-                return $this->redirectToRoute('app_order_payment');
-            }
-            return $this->render('order/index.html.twig', [
-                'form' => $form->createView(),
-                'products' => $options['products'],
-                'price' => $price
+
+            //TODO SAVE ORDER
+            $countryCode && $order->setCountryCode($countryCode);
+            $price && $order->setPrice($price);
+            $taxNumber && $order->setTaxNumber($taxNumber);
+            $result = '';
+            /**
+             * @throws Exception
+             */
+            isset($obj,$method) && ($result = $obj->{$method}($price));
+            is_array($result) && ($result = json_encode($result));
+
+            return $this->render('order/payment.html.twig', [
+                'order' => $order,
+                'result' => $result
             ]);
         }
         return $this->render('order/index.html.twig', [
             'form' => $form->createView(),
-            'products' => $options['products']
-        ]);
-    }
-
-    #[Route('/payment', name: 'app_order_payment')]
-    public function payment(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        //TODO payment paypal stripe
-        //TODO paymentController
-        dump('test32');
-        return $this->render('order/payment.html.twig', [
-            //fixme order
-//            'order' => $order
+            'products' => $options['products'],
+            'price' => $price
         ]);
     }
 }

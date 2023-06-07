@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Service\PaymentProcessor;
-use App\Service\PaymentProcessor\Exception;
+use Exception;
 
 class PaypalPaymentProcessor
 {

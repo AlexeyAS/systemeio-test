@@ -9,21 +9,13 @@
 </style>
 
 <div class="example-wrapper">
-
-    {% if result %}
     <h1>Payout Success✅</h1>
-    {% else %}
-    <h1>Payout Failed✅</h1>
-    {% endif %}
 
-
-    <div>Your PaymentProcessor:</div>
-    <code>{{ order.getPaymentProcessor() }}</code>
-
+{#    {{ order }}#}
+    <a href="{{ path('app_order') }}">Назад</a>
     <ul>
         <li>Your SALE <code>SALE4</code></li>
         <li>Your GIFT <code>GIFT10</code></li>
     </ul>
-    <a href="{{ path('app_order') }}">Назад</a>
 </div>
 {% endblock %}
