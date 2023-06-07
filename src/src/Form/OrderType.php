@@ -119,6 +119,10 @@ class OrderType extends AbstractType
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options){});
 
         $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event) use ($options){
+
+        });
+
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) use ($options) {
             $form = $event->getForm();
             /** @var Order $data */
             $data = $event->getData();
@@ -132,10 +136,6 @@ class OrderType extends AbstractType
                     $event->getForm()->get('tax_number')->addError(new FormError($error->getMessage()));
                 }
             }
-        });
-
-        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) use ($options) {
-
         });
     }
 

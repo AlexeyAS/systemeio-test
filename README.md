@@ -1,4 +1,4 @@
-# Todo 2 эндпоинта /calculate /payment (PaymentController)
+# TODO 2 эндпоинта /calculate /payment (CalculateController PaymentController)
 
 # Написать symfony REST приложение для рассчета цены продукта и проведения оплаты
 
