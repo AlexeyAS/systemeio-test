@@ -8,12 +8,13 @@ class PaypalPaymentProcessor
     /**
      * @throws Exception in case of a failed payment
      */
-    public function pay(int $price): void
+    public function pay(int $price): ?string
     {
         if ($price > 100) {
-            throw new Exception('Too high price');
+            return 'Too high price';
         }
 
         //process payment logic
+        return true;
     }
 }

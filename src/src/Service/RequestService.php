@@ -51,6 +51,7 @@ class RequestService extends Transformer
         return $responseArray;
     }
 
+    // POST /payment
     public function payout(Order $order, EntityManagerInterface $entityManager):array {
         $responseArray = [];
         $productId = $order->getProduct();
@@ -61,16 +62,25 @@ class RequestService extends Transformer
         $entityManager->persist($order);
         $entityManager->flush();
 
+        //TODO Маппинг классов, методов, ответов при совершении заказа
         $order->getPaymentProcessor() && ($obj = $this->getPaymentProcessorObject($order->getPaymentProcessor()));
         $order->getPaymentProcessor() && ($method = $this->getPaymentProcessorMethod($order->getPaymentProcessor()));
 
         /**
          * @throws Exception
          */
+        //TODO Маппинг ошибок, исключений
         $result = '';
         isset($obj, $method) && ($result = $obj->{$method}((int) $order->getPrice()));
-        $result && $responseArray['status'] = json_encode($result);
-        $responseArray['success'] = true;
+        if ($result) {
+            $responseArray['success'] = true;
+            $responseArray['status'] = json_encode($result);
+        }
+        else {
+            $responseArray['success'] = false;
+        }
+
+        dump($responseArray);
         return $responseArray;
     }
 }

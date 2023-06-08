@@ -10,7 +10,9 @@
 
 <div class="example-wrapper">
     <h1>Payout Success✅</h1>
-
+    {% if status is defined %}
+        {{ status }}
+    {% endif %}
 {#    {{ order }}#}
     <a href="{{ path('app_order') }}">Назад</a>
     <ul>
