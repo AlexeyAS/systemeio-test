@@ -7,7 +7,7 @@ use App\Service\PaymentProcessor\StripePaymentProcessor;
 
 class PaymentEnum extends BaseEnum
 {
-    const NAME = 'payment';
+    const PAYMENT_NAME = 'payment';
     const PAYMENT_PROCESSOR_PAYPAL = 'paypal';
     const PAYMENT_PROCESSOR_STRIPE = 'stripe';
     const PAYMENT_PROCESSOR_METHODS = [

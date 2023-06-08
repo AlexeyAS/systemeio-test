@@ -128,4 +128,18 @@ class Order
 
         return $this;
     }
+
+    public function jsonSerialize(): ?array
+    {
+        return [
+            'id' => $this->getId(),
+            'product' => $this->getProduct(),
+            'country_code' => $this->getCountryCode(),
+            'tax_number' => $this->getTaxNumber(),
+            'payment_processor' => $this->getPaymentProcessor(),
+            'sale_code' => $this->getSaleCode(),
+            'price' => $this->getPrice(),
+            'timestamp' => $this->getTimestamp()
+        ];
+    }
 }

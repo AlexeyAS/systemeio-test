@@ -46,14 +46,14 @@ class Transformer
         return $query->getResult();
     }
 
-    public function calcData(int $productId,
-                             ?int $saleId,
-                             ?int $taxId,
-                             string $price,
-                             ?string $taxNumber,
-                             ?string $countryCode,
-                             ?string $saleCode,
-                             ?string $paymentProcessor): string
+    public function calcRequestQuery(int     $productId,
+                                     ?int    $saleId,
+                                     ?int    $taxId,
+                                     string  $price,
+                                     ?string $taxNumber,
+                                     ?string $countryCode,
+                                     ?string $saleCode,
+                                     ?string $paymentProcessor): string
     {
         $productId && $result['product_id'] = $productId;
         $saleId && $result['sale_id'] = $saleId;
@@ -64,5 +64,16 @@ class Transformer
         $saleCode && $result['sale_code'] = $saleCode;
         $paymentProcessor && $result['payment_processor'] = $paymentProcessor;
         return (http_build_query($result ?? []));
+    }
+
+    public function calcRequestArray(?string $get): array
+    {
+        $result = [];
+        $explodes = explode('&', $get);
+        foreach ($explodes as $explode){
+            $field = explode('=', $explode);
+            $result[$field[0]] = $field[1] ?? '';
+        }
+        return $result;
     }
 }

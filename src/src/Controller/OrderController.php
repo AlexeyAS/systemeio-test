@@ -39,47 +39,46 @@ class OrderController extends AbstractController
         $order = new Order();
         $transformer = new Transformer($entityManager);
         $options['products'] = $transformer->getAllProducts();
-        $calcData = [];
-        $request->get('req') && parse_str($request->get('req'), $calcData);
 
-        $productId = $calcData['product_id'] ?? null;
-        $paymentProcessor = $calcData['payment_processor'] ?? null;
-        $saleId = $calcData['sale_id'] ?? null;
-        $saleCode = $calcData['sale_code'] ?? null;
-        $countryCode = $calcData['country_code'] ?? null;
-        $taxNumber = $calcData['tax_number'] ?? null;
-        $price = $calcData['price'] ?? $request->get('price') ?? null;
-        if ($calcData) {
-            $order->setProduct($productId);
-            $order->setPaymentProcessor($paymentProcessor);
-            $order->setCountryCode($countryCode);
-            $order->setSaleCode($saleCode);
-            $order->setTaxNumber($taxNumber);
-            $order->setPrice($price);
-        }
+//        $calcData = [];
+//        $request->get('req') && parse_str($request->get('req'), $calcData);
+//
+//        $productId = $calcData['product_id'] ?? null;
+//        $paymentProcessor = $calcData['payment_processor'] ?? null;
+//        $saleId = $calcData['sale_id'] ?? null;
+//        $saleCode = $calcData['sale_code'] ?? null;
+//        $countryCode = $calcData['country_code'] ?? null;
+//        $taxNumber = $calcData['tax_number'] ?? null;
+//        $price = $calcData['price'] ?? $request->get('price') ?? null;
+//        if ($calcData) {
+//            $order->setProduct($productId);
+//            $order->setPaymentProcessor($paymentProcessor);
+//            $order->setCountryCode($countryCode);
+//            $order->setSaleCode($saleCode);
+//            $order->setTaxNumber($taxNumber);
+//            $order->setPrice($price);
+//        }
+
 
         $form = $this->createForm(OrderType::class, $order, $options);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid() && method_exists($form, 'getClickedButton')) {
-            $paymentProcessor = $form->get('payment_processor')->getData() ?? null;
+            $productId = $form->get('product')->getData();
             $countryCode = $form->get('country_code')->getData() ?? null;
             $saleCode = $form->get('sale_code')->getData();
             $taxNumber = $form->get('tax_number')->getData();
+            $paymentProcessor = $form->get('payment_processor')->getData() ?? null;
             $price = $form->get('price')->getData() ?? null;
-
-            $order->setSaleCode($request->get('sale_code') ?? '');
-            $order->setPaymentProcessor($paymentProcessor);
-
             $action = $form->getClickedButton()->getName() ?: OrderEnum::ORDER_ACTION_CALCULATE;
-            $productId = $form->get('product')->getData();
+
             $product = $transformer->findByIdProduct($productId);
             $sale = $transformer->getSale($saleCode);
             $tax = $transformer->getTax($countryCode);
             $price = $this->calculatePrice($product->getPrice(), $sale, $tax);
 
             if ($action === OrderEnum::ORDER_ACTION_CALCULATE) {
-                return $this->redirectToRoute(ControllerEnum::ORDER_CONTROLLER, [
-                    'req' => $transformer->calcData(
+                return $this->redirectToRoute(ControllerEnum::CALCULATE_CONTROLLER, [
+                    'req' => $transformer->calcRequestQuery(
                         $productId,
                         $sale ? ($sale->getId()) : null,
                         $tax ? ($tax->getId()) : null,
@@ -92,30 +91,37 @@ class OrderController extends AbstractController
                 ]);
             }
             elseif($action === OrderEnum::ORDER_ACTION_PAYMENT && $request->isMethod('POST')) {
+                $productId && $order->setProduct($productId);
+                $saleCode && $order->setSaleCode($saleCode);
+                $paymentProcessor && $order->setPaymentProcessor($paymentProcessor);
+                $countryCode && $order->setCountryCode($countryCode);
+                $price && $order->setPrice($price);
+                $taxNumber && $order->setTaxNumber($taxNumber);
+                $entityManager->persist($order);
+                $entityManager->flush();
+
+                //@deprecated
                 $paymentProcessor && ($obj = $this->getPaymentProcessorObject($paymentProcessor));
                 $paymentProcessor && ($method = $this->getPaymentProcessorMethod($paymentProcessor));
+                /**
+                 * @throws Exception
+                 */
+                $result = '';
+                isset($obj,$method) && ($result = $obj->{$method}($price));
+                is_array($result) && ($result = json_encode($result));
+
+                /**
+                 * TODO PaymentController
+                 */
+                return $this->render('payment/payment.html.twig', [
+                    'order' => $order,
+                    'result' => $result
+                ]);
             }
-
-            //TODO SAVE ORDER
-            $countryCode && $order->setCountryCode($countryCode);
-            $price && $order->setPrice($price);
-            $taxNumber && $order->setTaxNumber($taxNumber);
-            $result = '';
-            /**
-             * @throws Exception
-             */
-            isset($obj,$method) && ($result = $obj->{$method}($price));
-            is_array($result) && ($result = json_encode($result));
-
-            return $this->render('order/payment.html.twig', [
-                'order' => $order,
-                'result' => $result
-            ]);
         }
         return $this->render('order/index.html.twig', [
             'form' => $form->createView(),
-            'products' => $options['products'],
-            'price' => $price
+            'products' => $options['products']
         ]);
     }
 }
