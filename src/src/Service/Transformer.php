@@ -66,7 +66,7 @@ class Transformer
         return (http_build_query($result ?? []));
     }
 
-    public function calcRequestArray(?string $get): array
+    public function httpQueryToArray(?string $get): array
     {
         $result = [];
         $explodes = explode('&', $get);

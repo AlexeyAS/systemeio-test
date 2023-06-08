@@ -10,32 +10,6 @@
 
         {% block javascripts %}
             <script src="{{ asset('assets/js/jquery-3.7.0.min.js') }}"></script>
-            <script>
-                $('[id="order_calculate"]').on('submit', function(e) {
-
-                    e.preventDefault(); //Prevent Default action.
-                    e.stopPropargation();
-
-                    let form = this;
-                    let formURL = this.action;
-
-                    $.ajax({
-                        url: formURL,
-                        type: 'post',
-                        data:  $(form).serialize(),
-                        success: function(data, textStatus, jqXHR)
-                        {
-                            alert("success")
-                        },
-                        error: function(jqXHR, textStatus, errorThrown)
-                        {
-                            alert("error")
-                        }
-                    });
-
-                });
-            </script>
-
         {% endblock %}
     </head>
     <body>

@@ -1,5 +1,12 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
+    http_client:
+        default_options:
+            max_redirects: 7
+        scoped_clients:
+            your_api.client: #todo api.client
+#todo                base_uri: '%app.api.coolapp.base_uri%'
+                base_uri: 'http://localhost/'
     secret: '%env(APP_SECRET)%'
     #csrf_protection: true
     http_method_override: false

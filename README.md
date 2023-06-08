@@ -1,5 +1,4 @@
-# TODO 2 эндпоинта /calculate /payment (CalculateController PaymentController)
-
+### cd docker/ && docker-compose up -d
 # Написать symfony REST приложение для рассчета цены продукта и проведения оплаты
 
 Необходимо написать 2 эндпоинта:
