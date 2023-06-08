@@ -68,7 +68,7 @@ class RequestService extends Transformer
          * @throws Exception
          */
         $result = '';
-        isset($obj, $method) && ($result = $obj->{$method}($order->getPrice()));
+        isset($obj, $method) && ($result = $obj->{$method}((int) $order->getPrice()));
         $result && $responseArray['status'] = json_encode($result);
         $responseArray['success'] = true;
         return $responseArray;
