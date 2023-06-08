@@ -106,13 +106,13 @@ class OrderType extends AbstractType
             ->add('calculate', SubmitType::class, [
                 'label' => 'Calculate',
                 'attr' => [
-                    'class' => 'btn btn-sm mt-4 '
+                    'class' => 'btn btn-secondary btn-sm mt-4 '
                 ]
             ])
             ->add('payment', SubmitType::class, [
                 'label' => 'Payment',
                 'attr' => [
-                    'class' => 'btn btn-sm mt-4 '
+                    'class' => 'btn btn-primary btn-sm mt-4 '
                 ]
             ]);
 
