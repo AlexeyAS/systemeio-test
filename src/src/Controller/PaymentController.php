@@ -14,7 +14,7 @@ class PaymentController extends AbstractController
     public function index(): Response
     {
         return $this->render('payment/index.html.twig', [
-            'controller_name' => 'PaymentController',
+            'controller_name' => 'PaymentSuccess',
         ]);
     }
 }

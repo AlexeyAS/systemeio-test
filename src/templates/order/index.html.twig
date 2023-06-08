@@ -33,20 +33,20 @@
         <div>{{ form_widget(form.payment_processor) }}</div>
     </div>
     {% if price is defined and price is not null %}
-    <div class="d-inline-block" style="min-width: 150px;">
+    <div class="d-inline-block mt-1" style="min-width: 150px;">
         <div>{{ form_label(form.price) }}</div>
         <div>{{ price }}</div>
     </div>
     {% endif %}
     <br>
-    <div class="d-inline-block">
+    <div class="d-inline-block mt-2">
         {{ form_widget(form.calculate) }}
     </div>
     <br>
     <div class="d-inline-block">
         {{ form_widget(form.payment) }}
     </div>
-    <div class="error text-dark mt-5" style="background: red;">
+    <div class="error text-dark mt-4" style="background: red;">
         {{ form_errors(form.tax_number) }}
     </div>
     <ul>

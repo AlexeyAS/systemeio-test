@@ -18,7 +18,7 @@ class Order
 
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'orders')]
     #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id',nullable: true, onDelete: null)]
-    private ?int $product;
+    private null|int|Product $product;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\NotBlank(message: 'TAX NUMBER CANT BE EMPTY')]
@@ -45,12 +45,12 @@ class Order
         return $this->id;
     }
 
-    public function getProduct(): ?int
+    public function getProduct(): null|int|Product
     {
         return $this->product;
     }
 
-    public function setProduct(int $product): self
+    public function setProduct(null|int|Product $product): self
     {
         $this->product = $product;
 

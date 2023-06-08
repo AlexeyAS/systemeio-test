@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Order;
 use App\Enum\ControllerEnum;
-use App\Enum\OrderEnum;
+use App\Enum\CalculateEnum;
 use App\Form\OrderType;
 use App\Traits\CalculateTrait;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,7 +18,7 @@ class CalculateController extends AbstractController
 {
     use CalculateTrait;
 
-    #[Route('/calculate', name: 'app_calculate', methods: 'GET')]
+    #[Route('/'.CalculateEnum::CALCULATE_NAME, name: ControllerEnum::CALCULATE_CONTROLLER, methods: 'GET')]
     public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
         $response = new Response();

@@ -54,73 +54,53 @@ class OrderController extends AbstractController
         $service = new RequestService($client, $entityManager);
         $options['products'] = $service->getAllProducts();
 
-
         $form = $this->createForm(OrderType::class, $order, $options);
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid() && method_exists($form, 'getClickedButton')) {
-            $action = $form->getClickedButton()->getName() ?: OrderEnum::ORDER_ACTION_CALCULATE;
-            $productId = $form->get('product')->getData();
-            $saleCode = $form->get('sale_code')->getData();
-            $countryCode = $form->get('country_code')->getData() ?? null;
-            $taxNumber = $form->get('tax_number')->getData();
-            $paymentProcessor = $form->get('payment_processor')->getData() ?? null;
-            $price = $form->get('price')->getData() ?? null;
+            if ($form->isSubmitted() && $form->isValid() && method_exists($form, 'getClickedButton')) {
+                $action = $form->getClickedButton()->getName() ?: OrderEnum::ORDER_ACTION_CALCULATE;
+                $productId = $form->get('product')->getData();
+                $saleCode = $form->get('sale_code')->getData();
+                $countryCode = $form->get('country_code')->getData() ?? null;
+                $taxNumber = $form->get('tax_number')->getData();
+                $paymentProcessor = $form->get('payment_processor')->getData() ?? null;
+                $price = $form->get('price')->getData() ?? null;
 
-            if ($action === OrderEnum::ORDER_ACTION_CALCULATE) {
-                $calculateResponse = $service->calculate([
-                    'product_id' => $productId,
-                    'tax_number' => $taxNumber ?: null,
-                    'country_code' => $countryCode ?: null,
-                    'sale_code' => $saleCode ?: null,
-                    'payment_processor' => $paymentProcessor ?: null
-                ]);
-                isset($calculateResponse['price']) && $price = $calculateResponse['price'];
+                if ($action === OrderEnum::ORDER_ACTION_CALCULATE || $action === OrderEnum::ORDER_ACTION_PAYMENT) {
+                    $calculateResponse = $service->calculate([
+                        'product_id' => $productId,
+                        'tax_number' => $taxNumber ?: null,
+                        'country_code' => $countryCode ?: null,
+                        'sale_code' => $saleCode ?: null,
+                        'payment_processor' => $paymentProcessor ?: null
+                    ]);
+                    isset($calculateResponse['price']) && $price = $calculateResponse['price'];
+                }
+                if ($action === OrderEnum::ORDER_ACTION_PAYMENT && $request->isMethod('POST')) {
+                    if ($productId) {
+                        $product = $entityManager->getRepository(Product::class)->findOneBy(['id' => $productId]);
+                    }
+                    isset($product) && $order->setProduct($product);
+                    $saleCode && $order->setSaleCode($saleCode);
+                    $paymentProcessor && $order->setPaymentProcessor($paymentProcessor);
+                    $countryCode && $order->setCountryCode($countryCode);
+                    $price && $order->setPrice($price);
+                    $taxNumber && $order->setTaxNumber($taxNumber);
+
+                    $orderStatus = $service->payout($order, $entityManager);
+                    if (isset($orderStatus['success']) && $orderStatus['success']) {
+                        return $this->render('payment/index.html.twig', [
+                            'controller_name' => 'PaymentSuccess',
+                        ]);
+                    }
+                }
             }
-//            elseif($action === OrderEnum::ORDER_ACTION_PAYMENT && $request->isMethod('POST')) {
-//                $productId && $order->setProduct($productId);
-//                $saleCode && $order->setSaleCode($saleCode);
-//                $paymentProcessor && $order->setPaymentProcessor($paymentProcessor);
-//                $countryCode && $order->setCountryCode($countryCode);
-//                $price && $order->setPrice($price);
-//                $taxNumber && $order->setTaxNumber($taxNumber);
-//                $entityManager->persist($order);
-//                $entityManager->flush();
-//
-//                //@deprecated
-//                $paymentProcessor && ($obj = $this->getPaymentProcessorObject($paymentProcessor));
-//                $paymentProcessor && ($method = $this->getPaymentProcessorMethod($paymentProcessor));
-//                /**
-//                 * @throws Exception
-//                 */
-//                $result = '';
-//                isset($obj,$method) && ($result = $obj->{$method}($price));
-//                is_array($result) && ($result = json_encode($result));
-//
-//                /**
-//                 * TODO PaymentController
-//                 */
-//                return $this->render('payment/payment.html.twig', [
-//                    'order' => $order,
-//                    'result' => $result
-//                ]);
-//            }
-        }
+
+
 
         return $this->render('order/index.html.twig', [
             'form' => $form->createView(),
             'products' => $options['products'],
             'price' => $price ?? null
         ]);
-
-//        $getString = $service->calcRequestQuery(
-//            $productId,
-//            $sale ? ($sale->getId()) : null,
-//            $tax ? ($tax->getId()) : null,
-//            $price ?: null,
-//            $taxNumber ?: null,
-//            $countryCode ?: null,
-//            $saleCode ?: null,
-//            $paymentProcessor ?: null
-//        );
     }
 }
