@@ -1,6 +1,18 @@
 ### cd src && composer install
 ### cd docker/ && docker-compose up -d
 ### docker exec -i -t php-fpm bin/console
+
+<hr>
+
+#### TODO:
+- PHPUnit https://symfony.com/doc/current/testing.html
+- /payment POST endpoint fix
+- Interface
+- Migrations
+- Commands
+- install.sh
+
+
 # Написать symfony REST приложение для рассчета цены продукта и проведения оплаты
 
 Необходимо написать 2 эндпоинта:
