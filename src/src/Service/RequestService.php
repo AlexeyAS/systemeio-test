@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Product;
 use App\Enum\CalculateEnum;
+use App\Enum\PaymentEnum;
 use App\Traits\PaymentProcessorTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -28,6 +29,7 @@ class RequestService extends Transformer
     }
 
     /**
+     * Endpoint: /calculate GET
      * @throws TransportExceptionInterface
      * @throws ClientExceptionInterface
      * @throws RedirectionExceptionInterface
@@ -36,7 +38,8 @@ class RequestService extends Transformer
      */
     public function calculate(string|array $get): array
     {
-        $responseArray = [];
+        $response = [];
+        $url = 'http://nginx/' . CalculateEnum::CALCULATE_NAME;
 //        $client = $this->client->withOptions(
 //            [
 //                'base_uri' => [
@@ -45,15 +48,25 @@ class RequestService extends Transformer
 //                'http://127.0.0.1/'
 //            ]
 //        );
-        $response = $this->client->request('GET', 'http://nginx/' . CalculateEnum::CALCULATE_NAME, ['json' => $get]);
-        $response->toArray() && $responseArray = $response->toArray();
-        !$responseArray && $responseArray = ['status_code' => $response->getStatusCode(), 'success' => false];
-        return $responseArray;
+        $request = $this->client->request('GET', $url, ['json' => $get]);
+        $request->toArray() && $response = $request->toArray();
+        !$response && $response = ['status_code' => $request->getStatusCode(), 'success' => false];
+        return $response;
     }
 
-    // POST /payment
-    public function payout(Order $order, EntityManagerInterface $entityManager):array {
-        $responseArray = [];
+    /**
+     * Endpoint: /payment POST
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws Exception
+     */
+    public function payment(Order $order, EntityManagerInterface $entityManager): array
+    {
+        $response = [];
+        $url = 'http://nginx/' . PaymentEnum::PAYMENT_NAME;
         $productId = $order->getProduct();
         $product = $entityManager->getRepository(Product::class)->findOneBy(['id'=>$productId]);
         $order->setProduct($product);
@@ -62,25 +75,9 @@ class RequestService extends Transformer
         $entityManager->persist($order);
         $entityManager->flush();
 
-        //TODO Маппинг классов, методов, ответов при совершении заказа
-        $order->getPaymentProcessor() && ($obj = $this->getPaymentProcessorObject($order->getPaymentProcessor()));
-        $order->getPaymentProcessor() && ($method = $this->getPaymentProcessorMethod($order->getPaymentProcessor()));
-
-        /**
-         * @throws Exception
-         */
-        //TODO Маппинг ошибок, исключений
-        $result = '';
-        isset($obj, $method) && ($result = $obj->{$method}((int) $order->getPrice()));
-        if ($result) {
-            $responseArray['success'] = true;
-            $responseArray['status'] = json_encode($result);
-        }
-        else {
-            $responseArray['success'] = false;
-        }
-
-        dump($responseArray);
-        return $responseArray;
+        $request = $this->client->request('POST', $url, ['order' => $order]);
+        $request->toArray() && $response = $request->toArray();
+        !$response && $response = ['status_code' => $request->getStatusCode(), 'success' => false];
+        return $response;
     }
 }

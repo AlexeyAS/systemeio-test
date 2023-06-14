@@ -85,8 +85,7 @@ class OrderController extends AbstractController
                     $countryCode && $order->setCountryCode($countryCode);
                     $price && $order->setPrice($price);
                     $taxNumber && $order->setTaxNumber($taxNumber);
-
-                    $orderStatus = $service->payout($order, $entityManager);
+                    $orderStatus = $service->payment($order, $entityManager);
                     if (isset($orderStatus['success']) && $orderStatus['success']) {
                         return $this->render('payment/index.html.twig', [
                             'controller_name' => 'PaymentSuccess',

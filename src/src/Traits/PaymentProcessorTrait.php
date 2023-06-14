@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Enum\ErrorEnum;
 use App\Enum\PaymentEnum;
 use App\Service\PaymentProcessor\PaypalPaymentProcessor;
 use App\Service\PaymentProcessor\StripePaymentProcessor;
@@ -25,5 +26,19 @@ trait PaymentProcessorTrait
             return PaymentEnum::PAYMENT_PROCESSOR_METHODS[$value];
         }
         return PaymentEnum::PAYMENT_PROCESSOR_METHODS[PaymentEnum::PAYMENT_PROCESSOR_DEFAULT];
+    }
+
+    public function getPaymentProcessorResponse(string|bool|null $value, ?string $paymentProcessor): array
+    {
+        if ($value !== null && $value !== true) {
+            $paymentProcessor === PaymentEnum::PAYMENT_PROCESSOR_PAYPAL &&
+            $response['error_message'] = $value ?: ErrorEnum::ERROR_MAX_PRICE;
+            $paymentProcessor === PaymentEnum::PAYMENT_PROCESSOR_STRIPE &&
+            $response['error_message'] = ErrorEnum::ERROR_MIN_PRICE;
+        } else {
+            $response['error_message'] = ErrorEnum::ERROR_RESPONSE . ' ' . $paymentProcessor;
+        }
+        $response['success'] = $value === true;
+        return $response;
     }
 }
