@@ -4,9 +4,7 @@ namespace App\Controller;
 
 use App\Enum\ControllerEnum;
 use App\Enum\ErrorEnum;
-use App\Service\Finder;
 use App\Traits\PaymentProcessorTrait;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,25 +22,25 @@ class PaymentController extends AbstractController
     }
 
     #[Route('/'.ControllerEnum::PAYMENT_NAME, name: ControllerEnum::PAYMENT_CONTROLLER, methods: 'POST')]
-    public function index(Request $request, EntityManagerInterface $entityManager): Response
+    public function index(Request $request): Response
     {
-        $finder = new Finder($entityManager);
-        $requestArray = ($content = $request->getContent()) ? json_decode($content, true) : [];
-        $orderId = $requestArray['order_id'] ?? null;
-        $orderId && $order = $finder->findByIdOrder($orderId);
-
-        if (isset($order) && $order) {
-            $paymentProcessor = $order->getPaymentProcessor();
-            $price = (int) $order->getPrice();
+        $req = ($content = $request->getContent()) ? json_decode($content, true) : [];
+        if (isset($req['product'], $req['taxNumber'], $req['couponCode'], $req['paymentProcessor'], $req['price'])) {
+            $paymentProcessor = $req['paymentProcessor'];
+            $price = (int) $req['price'];
             $paymentProcessor && ($obj = $this->paymentProcessorFactory->createObject($paymentProcessor));
             $paymentProcessor && ($method = $this->paymentProcessorFactory->getMethod($paymentProcessor));
             isset($obj, $method) && ($result = $obj->{$method}($price));
             $response = $this->getPaymentProcessorResponse($result ?? null, $paymentProcessor);
-            $response['order_id'] = $orderId;
+            if ($response['success']) {
+                return new Response(json_encode($response), 200);
+            } else {
+                return new Response(json_encode($response), 400);
+            }
         } else {
             $response['success'] = false;
             $response['error_message'] = ErrorEnum::ERROR_LOST_ORDER;
+            return new Response(json_encode($response), 400);
         }
-        return new Response(json_encode($response));
     }
 }

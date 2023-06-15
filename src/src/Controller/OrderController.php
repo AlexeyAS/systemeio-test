@@ -58,16 +58,6 @@ class OrderController extends AbstractController
                 $price = $form->get('price')->getData() ?? null;
 
                 if ($action === ControllerEnum::CALCULATE_NAME || $action === ControllerEnum::PAYMENT_NAME) {
-                    $calculateResponse = $service->calculate([
-                        'product_id' => $productId,
-                        'tax_number' => $taxNumber ?: null,
-                        'country_code' => $countryCode ?: null,
-                        'sale_code' => $saleCode ?: null,
-                        'payment_processor' => $paymentProcessor ?: null
-                    ]);
-                    isset($calculateResponse['price']) && $price = $calculateResponse['price'];
-                }
-                if ($action === ControllerEnum::PAYMENT_NAME && $request->isMethod('POST')) {
                     if ($productId) {
                         $product = $entityManager->getRepository(Product::class)->findOneBy(['id' => $productId]);
                     }
@@ -75,17 +65,24 @@ class OrderController extends AbstractController
                     $saleCode && $order->setSaleCode($saleCode);
                     $paymentProcessor && $order->setPaymentProcessor($paymentProcessor);
                     $countryCode && $order->setCountryCode($countryCode);
-                    $price && $order->setPrice($price);
                     $taxNumber && $order->setTaxNumber($taxNumber);
-
-                    $response = $service->payment($order, $entityManager, true);
-                    if (isset($response['success']) && $response['success']) {
+                    $calculateResponse = $service->calculate($order, $entityManager);
+                    if (isset($calculateResponse['success']) && $calculateResponse['success']) {
+                        isset($calculateResponse['price']) && $price = $calculateResponse['price'];
+                    } else {
+                        $errorMessage = $calculateResponse['error_message'] ?? 'Unknown Error';
+                    }
+                }
+                if ($action === ControllerEnum::PAYMENT_NAME && $request->isMethod('POST')) {
+                    $price && $order->setPrice($price);
+                    $paymentResponse = $service->payment($order, $entityManager);
+                    if (isset($paymentResponse['success']) && $paymentResponse['success']) {
                         $render['controller_name'] = 'PaymentSuccess';
-                        $render['order_info'] = (isset($response['order_id']) && $response['order_id']) ?
-                            $service->findByIdOrder($response['order_id']) : null;
+                        $render['order_info'] = (isset($paymentResponse['order_id']) && $paymentResponse['order_id']) ?
+                            $service->findByIdOrder($paymentResponse['order_id']) : null;
                         return $this->render('payment/index.html.twig', $render);
                     } else {
-                        $errorMessage = $response['error_message'] ?? 'Unknown Error';
+                        $errorMessage = $paymentResponse['error_message'] ?? 'Unknown Error';
                     }
                 }
             }

@@ -18,19 +18,25 @@ class CalculateController extends AbstractController
     #[Route('/'.ControllerEnum::CALCULATE_NAME, name: ControllerEnum::CALCULATE_CONTROLLER, methods: 'GET')]
     public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $response = new Response();
         $finder = new Finder($entityManager);
-        $requestArray = ($content = $request->getContent()) ? json_decode($content, true) : [];
-
-        $productId = $requestArray['product_id'] ?? null;
-        $saleCode = $requestArray['sale_code'] ?? null;
-        $countryCode = $requestArray['country_code'] ?? null;
-
+        $req = ($content = $request->getContent()) ? json_decode($content, true) : [];
+        $productId = $req['product'] ?? null;
         $product = $finder->findByIdProduct($productId);
-        $sale = $finder->getSale($saleCode);
-        $tax = $finder->getTax($countryCode);
-        $price = $this->calculatePrice($product->getPrice(), $sale, $tax);
-
-        return $response->setContent(json_encode(['price'=>$price]));
+        $saleCode = $req['couponCode'] ?? null;
+        $countryCode = $req['countryCode'] ?? null;
+        if ($productId && $product && $countryCode) {
+            $sale = $finder->getSale($saleCode);
+            $tax = $finder->getTax($countryCode);
+            $calculate = $this->calculatePrice($product->getPrice(), $sale, $tax);
+        }
+        if (isset($calculate['price']) && $calculate['price']){
+            $response['success'] = true;
+            $response['price'] = $calculate['price'];
+            return new Response(json_encode($response), 200);
+        } else {
+            $response['success'] = false;
+            $response['error_message'] = $calculate['error_message'] ?? 'Calculation Error';
+            return new Response(json_encode($response), 400);
+        }
     }
 }

@@ -5,14 +5,20 @@ namespace App\Traits;
 
 use App\Entity\Sale;
 use App\Entity\Tax;
+use App\Enum\ErrorEnum;
 
 trait CalculateTrait
 {
-    public function calculatePrice($price, ?Sale $sale = null, ?Tax $tax = null)
+    public function calculatePrice($price, ?Sale $sale = null, ?Tax $tax = null): array
     {
-        $sale && $price = $this->calculateSale($price, $sale);
-        $tax && $price = $this->calculateTax($price, $tax);
-        return $price;
+        if ($price > $sale->getSalePrice()) {
+            $sale && $price = $this->calculateSale($price, $sale);
+            $tax && $price = $this->calculateTax($price, $tax);
+            $result['price'] = $price;
+        } else {
+            $result['error_message'] = ErrorEnum::ERROR_CALCULATE_PRICE;
+        }
+        return $result;
     }
     public function calculateSale($price, Sale $sale): float|int
     {

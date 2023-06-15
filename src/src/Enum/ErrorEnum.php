@@ -8,4 +8,5 @@ class ErrorEnum extends BaseEnum
     const ERROR_MIN_PRICE = 'Too low price';
     const ERROR_LOST_RESPONSE = 'Response not exist';
     const ERROR_LOST_ORDER = 'Order not exist';
+    const ERROR_CALCULATE_PRICE = 'Price with coupon is null';
 }

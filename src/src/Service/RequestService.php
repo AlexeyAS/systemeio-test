@@ -29,17 +29,20 @@ class RequestService extends Finder
 
     /**
      * Endpoint: /calculate GET
-     * @param string|array $get
-     * @return array
+     * @param Order $order
+     * @param EntityManagerInterface $entityManager
+     * @return array|null
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      */
-    public function calculate(string|array $get): array
+    public function calculate(Order $order, EntityManagerInterface $entityManager): ?array
     {
-        $response = [];
+        $productId = $order->getProduct();
+        $product = $entityManager->getRepository(Product::class)->findOneBy(['id'=>$productId]);
+        $order->setProduct($product);
         $url = 'http://nginx/' . ControllerEnum::CALCULATE_NAME;
 //        $client = $this->client->withOptions(
 //            [
@@ -49,19 +52,20 @@ class RequestService extends Finder
 //                'http://127.0.0.1/'
 //            ]
 //        );
-        $request = $this->client->request('GET', $url, ['json' => $get]);
-        $request->toArray() && $response = $request->toArray();
-        !$response && $response = ['status_code' => $request->getStatusCode(), 'success' => false];
-        return $response;
+        $request = $this->client->request('GET', $url, ['json' => $this->getRequestData($order)]);
+        if ($request->getStatusCode() === 200) {
+            $response = $request->toArray();
+        } elseif ($request->getStatusCode() === 400) {
+            $response = $request->toArray(false);
+        }
+        return $response ?? null;
     }
 
     /**
      * Endpoint: /payment POST
      * @param Order $order
      * @param EntityManagerInterface $entityManager
-     * @param bool $removeFailedOrder
-     * Remove order if payment not success
-     * @return array
+     * @return array|null
      * @throws ClientExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws RedirectionExceptionInterface
@@ -69,26 +73,36 @@ class RequestService extends Finder
      * @throws TransportExceptionInterface
      * @throws Exception
      */
-    public function payment(Order $order, EntityManagerInterface $entityManager, bool $removeFailedOrder = false): array
+    public function payment(Order $order, EntityManagerInterface $entityManager): ?array
     {
         $url = 'http://nginx/' . ControllerEnum::PAYMENT_NAME;
         $productId = $order->getProduct();
         $product = $entityManager->getRepository(Product::class)->findOneBy(['id'=>$productId]);
         $order->setProduct($product);
-        //save order
-        $entityManager->persist($order);
-        $entityManager->flush();
 
-        $request = $this->client->request('POST', $url, ['json' => ['order_id' => $order->getId()]]);
-        $request->toArray() && $response = $request->toArray();
-        if (!isset($response) || !$response) {
-            $response = ['status_code' => $request->getStatusCode(), 'success' => false];
-            //delete order
-            if ($removeFailedOrder){
-                $entityManager->remove($order);
-                $entityManager->flush();
-            }
+        $request = $this->client->request('POST', $url, ['json' => $this->getRequestData($order)]);
+        if ($request->getStatusCode() === 200) {
+            //save order
+            $entityManager->persist($order);
+            $entityManager->flush();
+            $response = $request->toArray();
+            $response['order_id'] = $order->getId();
+        } elseif ($request->getStatusCode() === 400) {
+            $response = $request->toArray(false);
         }
+        return $response ?? null;
+    }
+
+    public function getRequestData(Order $order): array
+    {
+        $response = [
+            'product' => $order->getProduct()->getId(),
+            'taxNumber' => $order->getTaxNumber(),
+            'couponCode' => $order->getSaleCode(),
+            'paymentProcessor' => $order->getPaymentProcessor(),
+            'countryCode' => $order->getCountryCode()
+        ];
+        $order->getPrice() && $response['price'] = $order->getPrice();
         return $response;
     }
 }
