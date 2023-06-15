@@ -5,18 +5,12 @@ namespace App\Controller;
 use App\Entity\Order;
 use App\Enum\ControllerEnum;
 use App\Entity\Product;
-use App\Form\OrderType;
-use App\Repository\ProductRepository;
-use App\Repository\SaleRepository;
-use App\Repository\TaxRepository;
+use App\Form\OrderFormType;
 use App\Service\RequestService;
-use App\Service\Finder;
 use App\Traits\PaymentProcessorTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\Query\ResultSetMapping;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -52,7 +46,7 @@ class OrderController extends AbstractController
         $service = new RequestService($client, $entityManager);
         $options['products'] = $service->getAllProducts();
 
-        $form = $this->createForm(OrderType::class, $order, $options);
+        $form = $this->createForm(OrderFormType::class, $order, $options);
         $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid() && method_exists($form, 'getClickedButton')) {
                 $action = $form->getClickedButton()->getName() ?: ControllerEnum::CALCULATE_NAME;

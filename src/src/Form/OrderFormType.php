@@ -3,10 +3,9 @@
 namespace App\Form;
 
 use App\Entity\Order;
+use App\Enum\ControllerEnum;
 use App\Enum\CountryEnum;
 use App\Enum\PaymentProcessorEnum;
-use Doctrine\ORM\EntityManagerInterface;
-
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -20,17 +19,14 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Collection;
-use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Validator\Order as OrderConstraint;
 
-class OrderType extends AbstractType
+class OrderFormType extends AbstractType
 {
-    private EntityManagerInterface $em;
     private ValidatorInterface $validator;
-    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator) {
-        $this->em = $entityManager;
+    public function __construct(ValidatorInterface $validator) {
         $this->validator = $validator;
     }
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -103,13 +99,13 @@ class OrderType extends AbstractType
                     'class' => 'form-control form-control-sm wight-input-short'
                 ]
             ])
-            ->add('calculate', SubmitType::class, [
+            ->add(ControllerEnum::CALCULATE_NAME, SubmitType::class, [
                 'label' => 'Calculate',
                 'attr' => [
-                    'class' => 'btn btn-secondary btn-sm mt-4 '
+                    'class' => 'btn btn-secondary btn-sm mt-4'
                 ]
             ])
-            ->add('payment', SubmitType::class, [
+            ->add(ControllerEnum::PAYMENT_NAME, SubmitType::class, [
                 'label' => 'Payment',
                 'attr' => [
                     'class' => 'btn btn-primary btn-sm mt-4 '

@@ -2,10 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Order;
 use App\Enum\ControllerEnum;
-use App\Enum\CalculateEnum;
-use App\Form\OrderType;
 use App\Traits\CalculateTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
