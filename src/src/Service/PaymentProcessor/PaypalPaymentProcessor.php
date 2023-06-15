@@ -8,7 +8,7 @@ class PaypalPaymentProcessor
     /**
      * @throws Exception in case of a failed payment
      */
-    public function pay(int $price): ?string
+    public function pay(int $price): bool|string
     {
         if ($price > 100) {
             return 'Too high price';
