@@ -75,7 +75,7 @@ class RequestService extends Transformer
         $entityManager->persist($order);
         $entityManager->flush();
 
-        $request = $this->client->request('POST', $url, ['order' => $order]);
+        $request = $this->client->request('POST', $url, ['json' => ['order_id' => $order->getId()]]);
         $request->toArray() && $response = $request->toArray();
         !$response && $response = ['status_code' => $request->getStatusCode(), 'success' => false];
         return $response;

@@ -9,7 +9,15 @@
 </style>
 
 <div class="example-wrapper">
-    <h1>Hello  ✅</h1>
+    {% if error_message is defined and error_message is not null %}
+        <div class="error text-dark my-4 px-4" style="background: red;">
+            {% if action is defined and action is not null %}
+                <span>Action: <b>{{ action }}</b></span><br>
+            {% endif %}
+            <span>Error: <b>{{ error_message }}</b></span>
+        </div>
+    {% endif %}
+    <h1>ORDER NOW</h1>
 
     {{ form_start(form) }}
     <div class="d-inline-block" style="max-width: 100px;">

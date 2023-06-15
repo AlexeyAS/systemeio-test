@@ -33,6 +33,11 @@ class Transformer
         return $this->em->getRepository(Product::class)->findOneBy(['id'=>$value]);
     }
 
+    public function findByIdOrder($value): ?Order
+    {
+        return $this->em->getRepository(Order::class)->findOneBy(['id'=>$value]);
+    }
+
     /**
      * @return Product[] Returns an array of Product objects
      */

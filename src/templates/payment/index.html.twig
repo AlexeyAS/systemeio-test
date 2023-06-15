@@ -10,11 +10,27 @@
 
 <div class="example-wrapper">
     <h1>{{ controller_name }}! ✅</h1>
+    <h2 class="mt-5">✅Your order successfully payment✅</h2>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ '/var/www/src/Controller/PaymentController.php'|file_link(0) }}">src/Controller/PaymentController.php</a></code></li>
-        <li>Your template at <code><a href="{{ '/var/www/templates/payment/index.html.twig'|file_link(0) }}">templates/payment/index.html.twig</a></code></li>
+    {% if order_info is defined and order_info is not null %}
+        <div class="container border my-5">
+            <div class="row border">
+                <div class="col-6 border">Order ID:</div>
+                <div class="col-6 border">{{ order_info.getId }}</div>
+            </div>
+            <div class="row border">
+                <div class="col-6 border">Product:</div>
+                <div class="col-6 border">{{ order_info.getProduct.getName }}</div>
+            </div>
+            <div class="row border">
+                <div class="col-6 border">Price:</div>
+                <div class="col-6 border">{{ order_info.getPrice }}&dollar;</div>
+            </div>
+        </div>
+    {% endif %}
+
+    <ul class="mt-2">
+        <li><a href="{{ path('app_order') }}">Назад</a></li>
     </ul>
 </div>
 {% endblock %}

@@ -6,7 +6,6 @@
 
 #### TODO:
 - PHPUnit https://symfony.com/doc/current/testing.html
-- /payment POST endpoint fix
 - Interface
 - Migrations
 - Commands

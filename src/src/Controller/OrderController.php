@@ -85,21 +85,26 @@ class OrderController extends AbstractController
                     $countryCode && $order->setCountryCode($countryCode);
                     $price && $order->setPrice($price);
                     $taxNumber && $order->setTaxNumber($taxNumber);
-                    $orderStatus = $service->payment($order, $entityManager);
-                    if (isset($orderStatus['success']) && $orderStatus['success']) {
-                        return $this->render('payment/index.html.twig', [
-                            'controller_name' => 'PaymentSuccess',
-                        ]);
+
+                    $response = $service->payment($order, $entityManager);
+                    if (isset($response['success']) && $response['success']) {
+                        $render['controller_name'] = 'PaymentSuccess';
+                        $render['order_info'] = (isset($response['order_id']) && $response['order_id']) ?
+                            $service->findByIdOrder($response['order_id']) : null;
+                        return $this->render('payment/index.html.twig', $render);
+                    } else {
+                        $errorMessage = $response['error_message'] ?? 'Unknown Error';
                     }
                 }
             }
 
 
-
         return $this->render('order/index.html.twig', [
             'form' => $form->createView(),
             'products' => $options['products'],
-            'price' => $price ?? null
+            'price' => $price ?? null,
+            'action' => $action ?? null,
+            'error_message' => $errorMessage ?? null
         ]);
     }
 }
