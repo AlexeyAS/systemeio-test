@@ -7,7 +7,6 @@
 #### TODO:
 - PHPUnit https://symfony.com/doc/current/testing.html
 - Interface
-- Commands
 - install.sh
 
 
