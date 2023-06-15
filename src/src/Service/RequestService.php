@@ -3,8 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Product;
-use App\Enum\CalculateEnum;
-use App\Enum\PaymentEnum;
+use App\Enum\ControllerEnum;
 use App\Traits\PaymentProcessorTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -16,7 +15,7 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\Order;
 
-class RequestService extends Transformer
+class RequestService extends Finder
 {
     use PaymentProcessorTrait;
     private EntityManagerInterface $em;
@@ -30,16 +29,18 @@ class RequestService extends Transformer
 
     /**
      * Endpoint: /calculate GET
-     * @throws TransportExceptionInterface
+     * @param string|array $get
+     * @return array
      * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
-     * @throws DecodingExceptionInterface
+     * @throws TransportExceptionInterface
      */
     public function calculate(string|array $get): array
     {
         $response = [];
-        $url = 'http://nginx/' . CalculateEnum::CALCULATE_NAME;
+        $url = 'http://nginx/' . ControllerEnum::CALCULATE_NAME;
 //        $client = $this->client->withOptions(
 //            [
 //                'base_uri' => [
@@ -56,28 +57,38 @@ class RequestService extends Transformer
 
     /**
      * Endpoint: /payment POST
-     * @throws RedirectionExceptionInterface
-     * @throws DecodingExceptionInterface
+     * @param Order $order
+     * @param EntityManagerInterface $entityManager
+     * @param bool $removeFailedOrder
+     * Remove order if payment not success
+     * @return array
      * @throws ClientExceptionInterface
-     * @throws TransportExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      * @throws Exception
      */
-    public function payment(Order $order, EntityManagerInterface $entityManager): array
+    public function payment(Order $order, EntityManagerInterface $entityManager, bool $removeFailedOrder = false): array
     {
-        $response = [];
-        $url = 'http://nginx/' . PaymentEnum::PAYMENT_NAME;
+        $url = 'http://nginx/' . ControllerEnum::PAYMENT_NAME;
         $productId = $order->getProduct();
         $product = $entityManager->getRepository(Product::class)->findOneBy(['id'=>$productId]);
         $order->setProduct($product);
-
         //save order
         $entityManager->persist($order);
         $entityManager->flush();
 
         $request = $this->client->request('POST', $url, ['json' => ['order_id' => $order->getId()]]);
         $request->toArray() && $response = $request->toArray();
-        !$response && $response = ['status_code' => $request->getStatusCode(), 'success' => false];
+        if (!isset($response) || !$response) {
+            $response = ['status_code' => $request->getStatusCode(), 'success' => false];
+            //delete order
+            if ($removeFailedOrder){
+                $entityManager->remove($order);
+                $entityManager->flush();
+            }
+        }
         return $response;
     }
 }

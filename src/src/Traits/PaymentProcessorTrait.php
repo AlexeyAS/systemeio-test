@@ -3,39 +3,20 @@
 namespace App\Traits;
 
 use App\Enum\ErrorEnum;
-use App\Enum\PaymentEnum;
+use App\Enum\PaymentProcessorEnum;
 use App\Service\PaymentProcessor\PaypalPaymentProcessor;
 use App\Service\PaymentProcessor\StripePaymentProcessor;
 
 trait PaymentProcessorTrait
 {
-    public function getPaymentProcessorObject(?string $value = null):
-    StripePaymentProcessor|PaypalPaymentProcessor
-    {
-        return match ($value) {
-            PaymentEnum::PAYMENT_PROCESSOR_STRIPE => new StripePaymentProcessor(),
-//          PaymentEnum::PAYMENT_PROCESSOR_PAYPAL,
-//          PaymentEnum::PAYMENT_PROCESSOR_DEFAULT => new PaypalPaymentProcessor(),
-            default => new PaypalPaymentProcessor()
-        };
-    }
-
-    public function getPaymentProcessorMethod(?string $value = null): string
-    {
-        if (isset(PaymentEnum::PAYMENT_PROCESSOR_METHODS[$value])) {
-            return PaymentEnum::PAYMENT_PROCESSOR_METHODS[$value];
-        }
-        return PaymentEnum::PAYMENT_PROCESSOR_METHODS[PaymentEnum::PAYMENT_PROCESSOR_DEFAULT];
-    }
-
     public function getPaymentProcessorResponse(string|bool|null $value, ?string $paymentProcessor): array
     {
         if ($value === null) {
             $response['error_message'] = ErrorEnum::ERROR_LOST_RESPONSE . ' ' . $paymentProcessor;
         } elseif ($value !== true) {
-            $paymentProcessor === PaymentEnum::PAYMENT_PROCESSOR_PAYPAL &&
+            $paymentProcessor === PaymentProcessorEnum::PAYMENT_PROCESSOR_PAYPAL &&
             $response['error_message'] = $value ?: ErrorEnum::ERROR_MAX_PRICE;
-            $paymentProcessor === PaymentEnum::PAYMENT_PROCESSOR_STRIPE &&
+            $paymentProcessor === PaymentProcessorEnum::PAYMENT_PROCESSOR_STRIPE &&
             $response['error_message'] = ErrorEnum::ERROR_MIN_PRICE;
         }
         $response['success'] = $value === true;

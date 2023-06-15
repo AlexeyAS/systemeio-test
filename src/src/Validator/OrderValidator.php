@@ -2,20 +2,21 @@
 
 namespace App\Validator;
 
-use App\Enum\CountryEnum;
-use App\Enum\TaxEnum;
+use App\Factory\TaxValidatorFactory;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use App\Validator\Order as OrderConstraint;
 use App\Entity\Order;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
-use Symfony\Component\Validator\Constraints\Regex;
-use Symfony\Component\Validator\Constraints\Collection;
-use Symfony\Component\Validator\Validation;
 
 class OrderValidator extends ConstraintValidator
 {
+    private TaxValidatorFactory $taxValidatorFactory;
+
+    public function __construct(){
+        $this->taxValidatorFactory = new TaxValidatorFactory();
+    }
     public function validate($value, Constraint $constraint)
     {
         /* @var OrderConstraint $constraint */
@@ -32,10 +33,7 @@ class OrderValidator extends ConstraintValidator
 
         $countryCode = $value->getCountryCode();
         $taxNumber = $value->getTaxNumber();
-        $taxNumberRule = [
-            'pattern' => TaxEnum::TAX_NUMBER_PATTERN[$countryCode],
-            'message' => 'Tax incorrect for template ' . TaxEnum::TAX_NUMBER_MESSAGE[$countryCode]
-        ];
+        $taxNumberRule = $this->taxValidatorFactory->create($countryCode);
 
 
         if (!$value->getCountryCode() || !$value->getTaxNumber()){

@@ -3,16 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Order;
-use App\Enum\OrderEnum;
 use App\Enum\ControllerEnum;
 use App\Entity\Product;
-use App\Enum\PaymentEnum;
 use App\Form\OrderType;
 use App\Repository\ProductRepository;
 use App\Repository\SaleRepository;
 use App\Repository\TaxRepository;
 use App\Service\RequestService;
-use App\Service\Transformer;
+use App\Service\Finder;
 use App\Traits\PaymentProcessorTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -57,7 +55,7 @@ class OrderController extends AbstractController
         $form = $this->createForm(OrderType::class, $order, $options);
         $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid() && method_exists($form, 'getClickedButton')) {
-                $action = $form->getClickedButton()->getName() ?: OrderEnum::ORDER_ACTION_CALCULATE;
+                $action = $form->getClickedButton()->getName() ?: ControllerEnum::CALCULATE_NAME;
                 $productId = $form->get('product')->getData();
                 $saleCode = $form->get('sale_code')->getData();
                 $countryCode = $form->get('country_code')->getData() ?? null;
@@ -65,7 +63,7 @@ class OrderController extends AbstractController
                 $paymentProcessor = $form->get('payment_processor')->getData() ?? null;
                 $price = $form->get('price')->getData() ?? null;
 
-                if ($action === OrderEnum::ORDER_ACTION_CALCULATE || $action === OrderEnum::ORDER_ACTION_PAYMENT) {
+                if ($action === ControllerEnum::CALCULATE_NAME || $action === ControllerEnum::PAYMENT_NAME) {
                     $calculateResponse = $service->calculate([
                         'product_id' => $productId,
                         'tax_number' => $taxNumber ?: null,
@@ -75,7 +73,7 @@ class OrderController extends AbstractController
                     ]);
                     isset($calculateResponse['price']) && $price = $calculateResponse['price'];
                 }
-                if ($action === OrderEnum::ORDER_ACTION_PAYMENT && $request->isMethod('POST')) {
+                if ($action === ControllerEnum::PAYMENT_NAME && $request->isMethod('POST')) {
                     if ($productId) {
                         $product = $entityManager->getRepository(Product::class)->findOneBy(['id' => $productId]);
                     }
@@ -86,7 +84,7 @@ class OrderController extends AbstractController
                     $price && $order->setPrice($price);
                     $taxNumber && $order->setTaxNumber($taxNumber);
 
-                    $response = $service->payment($order, $entityManager);
+                    $response = $service->payment($order, $entityManager, true);
                     if (isset($response['success']) && $response['success']) {
                         $render['controller_name'] = 'PaymentSuccess';
                         $render['order_info'] = (isset($response['order_id']) && $response['order_id']) ?

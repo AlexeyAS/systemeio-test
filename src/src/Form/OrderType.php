@@ -4,7 +4,7 @@ namespace App\Form;
 
 use App\Entity\Order;
 use App\Enum\CountryEnum;
-use App\Enum\PaymentEnum;
+use App\Enum\PaymentProcessorEnum;
 use Doctrine\ORM\EntityManagerInterface;
 
 use Symfony\Component\Form\AbstractType;
@@ -89,8 +89,8 @@ class OrderType extends AbstractType
             ->add('payment_processor', ChoiceType::class, [
                 'label' => 'Способ оплаты',
                 'choices' => [
-                    'PayPal' => PaymentEnum::PAYMENT_PROCESSOR_PAYPAL,
-                    'Stripe' => PaymentEnum::PAYMENT_PROCESSOR_STRIPE,
+                    'PayPal' => PaymentProcessorEnum::PAYMENT_PROCESSOR_PAYPAL,
+                    'Stripe' => PaymentProcessorEnum::PAYMENT_PROCESSOR_STRIPE,
                 ],
                 'attr' => [
                     'class' => 'form-control form-control-sm wight-input-short'
